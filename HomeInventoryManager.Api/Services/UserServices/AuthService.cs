@@ -14,13 +14,13 @@ namespace HomeInventoryManager.Api.Services.UserServices
 {
     public class AuthService(AppDbContext _context, IConfiguration _configuration, ILogger<AuthService> _logger) : IAuthService
     {
-        public async Task<User?> RegisterUserAsync(UserRegisterDto userRegisterDto)
+        public async Task<ServiceResult<User>> RegisterUserAsync(UserRegisterDto userRegisterDto)
         {
             // Check if username or email already exists
             if (await _context.USERSET.AnyAsync(u => u.user_name == userRegisterDto.UserName || u.email == userRegisterDto.Email))
             {
                 _logger.LogWarning("Registration failed: Duplicate username or email for {UserName}", userRegisterDto.UserName);
-                return null;
+                return ServiceResult<User>.Fail(ErrorCode.ERR_INVALID_CREDENTIALS);
             }
 
             // Create a new user
@@ -43,15 +43,10 @@ namespace HomeInventoryManager.Api.Services.UserServices
             }
             catch (FormatException)
             {
-                return null;
+                return ServiceResult<User>.Fail(ErrorCode.ERR_FORMAT_INVALID);
             }
 
-            // Generate a random salt
-
             user.password_salt = PasswordUtility.GenerateSalt();
-            
-
-            //hash password with salt
             var hashedPassword = PasswordUtility.HashPassword(userRegisterDto.PasswordString, user.password_salt);
             user.password_hash = hashedPassword;
 
@@ -63,15 +58,15 @@ namespace HomeInventoryManager.Api.Services.UserServices
             catch(Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during registration for {UserName}", userRegisterDto.UserName);
-                return null;
+                return ServiceResult<User>.Fail(ErrorCode.ERR_INVALID_CREDENTIALS);
             }
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("User registration attempt successful: {UserName}", userRegisterDto.UserName);
-            return user;
+            return ServiceResult<User>.Ok(user); ;
         }
 
-        public async Task<TokenResponseDto?> LoginUserAsync(UserLoginDto userLoginDto)
+        public async Task<ServiceResult<TokenResponseDto>> LoginUserAsync(UserLoginDto userLoginDto)
         {
             _logger.LogInformation("User login attempt: {UserName}", userLoginDto.UserName);
 
@@ -83,13 +78,13 @@ namespace HomeInventoryManager.Api.Services.UserServices
             if (user == null)
             {
                 _logger.LogWarning("Login failed: Invalid credentials for {UserName}", userLoginDto.UserName);
-                return null;
+                return ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_INVALID_CREDENTIALS);
             }
 
             if (user.lockout_until_time > DateTime.UtcNow) //check if user is locked out
             {
                 _logger.LogWarning("Login failed: User {UserName} is locked out until {LockoutUntil}", userLoginDto.UserName, user.lockout_until_time);
-                return null;
+                return ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_ACCOUNT_LOCKED); ;
             }
             else if (user.failed_login_attempts >= maxAttempts)
             {
@@ -118,7 +113,7 @@ namespace HomeInventoryManager.Api.Services.UserServices
 
                 _context.USERSET.Update(user);
                 await _context.SaveChangesAsync();
-                return null;
+                return ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_INVALID_CREDENTIALS);
             }
 
             // Update login security details
@@ -129,21 +124,22 @@ namespace HomeInventoryManager.Api.Services.UserServices
             _context.USERSET.Update(user);
             await _context.SaveChangesAsync();
 
-            return await TokenUtility.CreateTokenResponse(user, _configuration, _context);
+            var tokenResponse = await TokenUtility.CreateTokenResponse(user, _configuration, _context);
+            return ServiceResult<TokenResponseDto>.Ok(tokenResponse);
         }
 
         
-        public async Task<TokenResponseDto?> LogoutUserAsync(int authenticatedUserId, UserLogoutDto userLogoutDto)
+        public async Task<ServiceResult<TokenResponseDto>> LogoutUserAsync(int authenticatedUserId, UserLogoutDto userLogoutDto)
         {
             if (authenticatedUserId != userLogoutDto.UserId)
             {
-                return null;
+                return ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_UNAUTHORIZED);
             }
 
             var user = await _context.USERSET.FindAsync(userLogoutDto.UserId);
             if (user == null)
             {
-                return null;
+                return ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_USER_NOT_FOUND);
             }
             
             user.refresh_token = null;
@@ -152,88 +148,24 @@ namespace HomeInventoryManager.Api.Services.UserServices
 
             _logger.LogInformation("User logout: {UserId}", userLogoutDto.UserId);
 
-            return new TokenResponseDto { AccessToken = "", RefreshToken = "" };
+            var tokenResponse = new TokenResponseDto { AccessToken = "", RefreshToken = "" };
+            return ServiceResult<TokenResponseDto>.Ok(tokenResponse);
         }
 
-        public async Task<TokenResponseDto?> RefreshTokensAsync(int authenticatedUserId, RefreshTokenRequestDto refreshTokenRequestDto)
+        public async Task<ServiceResult<TokenResponseDto>> RefreshTokensAsync(int authenticatedUserId, RefreshTokenRequestDto refreshTokenRequestDto)
         {
             if (authenticatedUserId != refreshTokenRequestDto.UserId)
             {
-                return null;
+                return ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_UNAUTHORIZED);
             }
 
             var user = await TokenUtility.ValidateRefreshTokenAsync(refreshTokenRequestDto.UserId, refreshTokenRequestDto.RefreshToken, _context, _logger);
             if (user == null)
             {
-                return null;
+                return ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_USER_NOT_FOUND);
             }
-            return await TokenUtility.CreateTokenResponse(user, _configuration, _context);
+            var tokenResponse = await TokenUtility.CreateTokenResponse(user, _configuration, _context);
+            return ServiceResult<TokenResponseDto>.Ok(tokenResponse);
         }
-
-        /*
-        private async Task<TokenResponseDto> CreateTokenResponse(User user)
-        {
-            return new TokenResponseDto
-            {
-                AccessToken = CreateToken(user),
-                RefreshToken = await GenerateAndSaveRefreshToken(user)
-            };
-        }
-
-
-
-        private string GenerateRefreshToken()
-        {
-            var randomNumber = new byte[32];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randomNumber);
-            return Convert.ToBase64String(randomNumber);
-        }
-
-        private async Task<string> GenerateAndSaveRefreshToken(User user)
-        {
-            var refreshToken = GenerateRefreshToken();
-            user.refresh_token = refreshToken;
-            user.refresh_token_time = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("AppSettings:RefreshTimeInDays"));
-            await _context.SaveChangesAsync();
-            return refreshToken;
-        }
-
-        private async Task<User?> ValidateRefreshTokenAsync(int userId, string refreshToken)
-        {
-            var user = await _context.USERSET.FindAsync(userId);
-            if (user == null || user.refresh_token != refreshToken || user.refresh_token_time <= DateTime.UtcNow)
-            {
-
-                _logger.LogWarning("Refresh token invalid or expired for user {UserId}", userId);
-                return null;
-            }
-            return user;
-        }
-
-        //JWT Token creation
-        private string CreateToken(User user)
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.user_id.ToString()),
-                new Claim(ClaimTypes.Name, user.user_name),
-                new Claim(ClaimTypes.Role, user.role)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:Token")!)); // Use a secure key
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
-            var tokenDescriptor = new JwtSecurityToken(
-                issuer: _configuration.GetValue<string>("AppSettings:Issuer"),
-                audience: _configuration.GetValue<string>("AppSettings:Audience"),
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),//TODO make to minutes I think
-                signingCredentials: creds
-            );
-
-            // Token creation logic goes here
-            return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
-        }
-        */
     }
 }

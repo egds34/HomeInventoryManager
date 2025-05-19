@@ -17,12 +17,11 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
         {
             var authenticatedUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var result = await userDeleteService.DeleteUserPersonalAsync(authenticatedUserId, userLogoutDto);
-            if (result == null)
+            if (!result.Success)
             {
-                return BadRequest("User not found.");
+                return BadRequest(new { result.ErrorCode, result.ErrorMessage });
             }
-
-            return Ok(result);
+            return Ok(result.Data);
         }
 
         [Authorize(Roles = "Admin")]
@@ -30,11 +29,11 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
         public async Task<ActionResult<User>> DeleteUserAsAdmin(UserLogoutDto userLogoutDto)
         {
             var result = await userDeleteService.DeleteUserAsync( userLogoutDto);
-            if (result == null)
+            if (!result.Success)
             {
-                return BadRequest("User not found.");
+                return BadRequest(new { result.ErrorCode, result.ErrorMessage });
             }
-            return Ok(result);
+            return Ok(result.Data);
         }
     }
 }

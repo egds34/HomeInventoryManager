@@ -16,11 +16,11 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
         public async Task<ActionResult<TokenResponseDto>> Register(UserRegisterDto userRegisterDto)
         {
             var result = await authService.RegisterUserAsync(userRegisterDto);
-            if (result is null)
+            if (!result.Success)
             {
-                return BadRequest("User already exists.");
+                return BadRequest(new { result.ErrorCode, result.ErrorMessage });
             }
-            return Ok(result);
+            return Ok(result.Data);
         }
 
         //POST: Login user
@@ -28,11 +28,11 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
         public async Task<ActionResult<TokenResponseDto>> Login(UserLoginDto userLoginDto)
         {
             var result = await authService.LoginUserAsync(userLoginDto);
-            if (result is null)
+            if (!result.Success)
             {
-                return BadRequest("Invalid username or password.");
+                return BadRequest(new { result.ErrorCode, result.ErrorMessage });
             }
-            return Ok(result);
+            return Ok(result.Data);
         }
 
         [Authorize]
@@ -42,11 +42,11 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
             var authenticatedUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var result = await authService.LogoutUserAsync(authenticatedUserId, userLogoutDto);
 
-            if (result == null)
+            if (!result.Success)
             {
-                return BadRequest("User not found.");
+                return BadRequest(new { result.ErrorCode, result.ErrorMessage });
             }
-            return Ok(result);
+            return Ok(result.Data);
         }
 
         [HttpPost("refresh-token")]
@@ -55,11 +55,11 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
             var authenticatedUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var result = await authService.RefreshTokensAsync(authenticatedUserId, refreshTokenRequstDto);
 
-            if (result == null || result.AccessToken == null || result.RefreshToken == null)
+            if (!result.Success || result.Data?.AccessToken == null || result.Data?.RefreshToken == null)
             {
-                return Unauthorized("Invalid refresh token.");
+                return BadRequest(new { result.ErrorCode, result.ErrorMessage });
             }
-            return Ok(result);
+            return Ok(result.Data);
         }
 
         //This is to test authentication for testing.
