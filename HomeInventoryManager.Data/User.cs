@@ -19,6 +19,10 @@ namespace HomeInventoryManager.Data
         public string last_name { get; set; } = string.Empty; // name of the user
         public string role { get; set; } = "Basic";
         public DateTime created_at { get; set; } = DateTime.UtcNow;
-
+        public DateTime last_login_time { get; set; } = DateTime.UtcNow;
+        public DateTime last_login_attempt_time { get; set; } = DateTime.UtcNow;
+        public int failed_login_attempts { get; set; } = 0;
+        public DateTime lockout_until_time { get; set; }
+        public int total_lockouts { get; set; } = 0;
     }
 }

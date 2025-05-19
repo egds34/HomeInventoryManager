@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35825.156 d17.13
+VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager", "HomeInventoryManager\HomeInventoryManager\HomeInventoryManager.csproj", "{237C70AD-9279-48F3-821F-B0B1F33037EA}"
 EndProject
@@ -12,6 +12,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager.Api", "HomeInventoryManager.Api\HomeInventoryManager.Api.csproj", "{81CEEA8F-81A5-4420-9FC9-2D739D7254C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager.Dto", "HomeInventoryManager.Dto\HomeInventoryManager.Dto.csproj", "{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager.UnitTest", "HomeInventoryManager.Test\HomeInventoryManager.UnitTest.csproj", "{33616DC5-194C-4EA4-8BA2-3871667BFF4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager.IntegrationTest", "HomeInventoryManager.IntegrationTest\HomeInventoryManager.IntegrationTest.csproj", "{F3171510-9ACF-4394-A445-8723B2433300}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33616DC5-194C-4EA4-8BA2-3871667BFF4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33616DC5-194C-4EA4-8BA2-3871667BFF4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33616DC5-194C-4EA4-8BA2-3871667BFF4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33616DC5-194C-4EA4-8BA2-3871667BFF4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3171510-9ACF-4394-A445-8723B2433300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3171510-9ACF-4394-A445-8723B2433300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3171510-9ACF-4394-A445-8723B2433300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3171510-9ACF-4394-A445-8723B2433300}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
