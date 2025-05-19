@@ -23,6 +23,13 @@ namespace HomeInventoryManager.Api.Services.UserServices
                 return ServiceResult<User>.Fail(ErrorCode.ERR_INVALID_CREDENTIALS);
             }
 
+            //validate input
+            var validation = ValidationUtility.ValidateUserFieldFormat(userRegisterDto);
+            if (!validation.IsValid)
+            {
+                return ServiceResult<User>.Fail(ErrorCode.ERR_FORMAT_INVALID, string.Join("; ", validation.Errors.Values));
+            }
+
             // Create a new user
             var user = new User
             {
@@ -34,23 +41,11 @@ namespace HomeInventoryManager.Api.Services.UserServices
                 created_at = DateTime.UtcNow
             };
 
-            //TODO verify name complies with rules I am not aware of right now
-            //TODO verify password complies with rules I am not aware of right now
-            //email validation
-            try
-            {
-                var mail = new MailAddress(userRegisterDto.Email);
-            }
-            catch (FormatException)
-            {
-                return ServiceResult<User>.Fail(ErrorCode.ERR_FORMAT_INVALID);
-            }
-
             user.password_salt = PasswordUtility.GenerateSalt();
             var hashedPassword = PasswordUtility.HashPassword(userRegisterDto.PasswordString, user.password_salt);
             user.password_hash = hashedPassword;
 
-            // Add user to database and save changes
+            // Add user to database
             try
             {
                 _context.USERSET.Add(user);

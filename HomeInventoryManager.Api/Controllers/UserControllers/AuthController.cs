@@ -5,6 +5,7 @@ using HomeInventoryManager.Data;
 using Microsoft.AspNetCore.Authorization;
 using HomeInventoryManager.Api.Services.UserServices.Interfaces;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HomeInventoryManager.Api.Controllers.UserEndpoints
 {
@@ -12,6 +13,7 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
     [ApiController]
     public class AuthController(IAuthService authService) : ControllerBase
     {
+        [EnableRateLimiting("register")]
         [HttpPost("register")]
         public async Task<ActionResult<TokenResponseDto>> Register(UserRegisterDto userRegisterDto)
         {

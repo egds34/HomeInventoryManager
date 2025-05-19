@@ -8,6 +8,7 @@ using System.Text;
 using Serilog;
 using HomeInventoryManager.Api.Services.UserServices;
 using HomeInventoryManager.Api.Services.UserServices.Interfaces;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,15 @@ builder.Services.AddScoped<IUserDeleteService, UserDeleteService>();
 
 builder.Host.UseSerilog();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("register", limiterOptions =>
+    {
+        limiterOptions.Window = TimeSpan.FromMinutes(2);
+        limiterOptions.PermitLimit = 5; // 5 requests per minute per IP/user
+    });
+});
+
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var app = builder.Build();
 
@@ -63,6 +73,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 app.MapControllers();
 

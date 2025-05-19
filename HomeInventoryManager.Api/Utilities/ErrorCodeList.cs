@@ -2,7 +2,7 @@
 {
     public static class ErrorCodeList
     {
-        public static string GetErrorMessage(ErrorCode errorCode, string? fallback)
+        public static string GetErrorMessage(ErrorCode errorCode)
         {
             return errorCode switch
             {
@@ -48,7 +48,7 @@
                 ErrorCode.ERR_SUSPICIOUS_ACTIVITY => "Unusual behavior detected.",
                 ErrorCode.ERR_INVALID_SIGNATURE => "Token or data has invalid signature.",
 
-                _ => fallback ?? "An unknown error occurred."
+                _ => "An unknown error occurred."
             };
         }
     }

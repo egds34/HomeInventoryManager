@@ -1,4 +1,6 @@
-﻿namespace HomeInventoryManager.Api.Utilities
+﻿using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
+
+namespace HomeInventoryManager.Api.Utilities
 {
     public class ServiceResult<T>
     {
@@ -12,7 +14,7 @@
         {
             Success = false,
             ErrorCode = errorCode,
-            ErrorMessage = ErrorCodeList.GetErrorMessage(errorCode, customMessage)
+            ErrorMessage = ErrorCodeList.GetErrorMessage(errorCode) + (customMessage != null ? $": {customMessage}" : "")
         };
 
 
