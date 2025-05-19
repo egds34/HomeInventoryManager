@@ -31,6 +31,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+[Oo]ut/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -399,3 +400,25 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Blazor WebAssembly specific
+wwwroot/_framework/
+
+# Local configuration
+appsettings.Development.json
+appsettings.Local.json
+
+# Publish output
+wwwroot/dist/
+wwwroot/node_modules/
+node_modules/
+
+# Rider settings
+.idea/
+
+# ASP.NET/Entity Framework secrets
+secrets.json
