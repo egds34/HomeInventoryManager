@@ -11,7 +11,9 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace HomeInventoryManager.Api.Services
 {
-    public class AuthService(AppDbContext _context, IConfiguration _configuration, ILogger<AuthService> _logger) : IAuthService
+    public class AuthService(AppDbContext _context, 
+        IConfiguration _configuration, 
+        ILogger<AuthService> _logger) : IAuthService
     {
 
         public async Task<User?> RegisterAsync(UserRegisterDto userRegisterDto)
@@ -78,6 +80,9 @@ namespace HomeInventoryManager.Api.Services
         {
             _logger.LogInformation("User login attempt: {UserName}", userLoginDto.UserName);
 
+            int maxAttempts = _configuration.GetValue<int>("AppSettings:MaxFailedLoginAttempts");
+            int lockoutMinutes = _configuration.GetValue<int>("AppSettings:LockoutTime");
+
             // Find the user by username or email
             User? user = await _context.USERSET.FirstOrDefaultAsync(u => u.user_name == userLoginDto.UserName || u.email == userLoginDto.UserName); //log in with either
             if (user == null)
@@ -86,18 +91,46 @@ namespace HomeInventoryManager.Api.Services
                 return null;
             }
 
-            // Hash the provided password with the stored salt
-            var hashedPassword = HashPassword(userLoginDto.PasswordString, user.password_salt);
-
-            // Check if the hashed password matches the stored password hash
-            if (!hashedPassword.SequenceEqual(user.password_hash))
+            if (user.lockout_until_time > DateTime.UtcNow) //check if user is locked out
             {
-                _logger.LogWarning("Login failed: Invalid credentials for {UserName}", userLoginDto.UserName);
+                _logger.LogWarning("Login failed: User {UserName} is locked out until {LockoutUntil}", userLoginDto.UserName, user.lockout_until_time);
+                return null;
+            }
+            else if (user.failed_login_attempts >= maxAttempts)
+            {
+                user.failed_login_attempts = 0;
+                _context.USERSET.Update(user);
+                await _context.SaveChangesAsync();
+            }
+
+                var hashedPassword = HashPassword(userLoginDto.PasswordString, user.password_salt);
+
+            if (!CryptographicOperations.FixedTimeEquals(hashedPassword, user.password_hash)) //neat. takes the same time to compare both strings to mitigate weak passwords
+            {
+                user.failed_login_attempts++;
+                user.last_login_attempt_time = DateTime.UtcNow;
+
+                if (user.failed_login_attempts >= maxAttempts)
+                {
+                    user.lockout_until_time = DateTime.UtcNow.AddMinutes(lockoutMinutes);
+                    user.total_lockouts++;
+                    _logger.LogWarning("Login failed: User {UserName} is now locked out until {LockoutUntil}", userLoginDto.UserName, user.lockout_until_time);
+                }
+                else
+                {
+                    _logger.LogWarning("Login failed: Invalid credentials for {UserName}", userLoginDto.UserName);
+                }
+
+                _context.USERSET.Update(user);
+                await _context.SaveChangesAsync();
                 return null;
             }
 
-            // Update last login time
+            // Update login security details
             user.last_login_time = DateTime.UtcNow;
+            user.last_login_attempt_time = DateTime.UtcNow;
+            user.failed_login_attempts = 0;
+
             _context.USERSET.Update(user);
             await _context.SaveChangesAsync();
 

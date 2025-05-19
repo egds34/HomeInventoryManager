@@ -8,13 +8,15 @@ using HomeInventoryManager.Dto;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using HomeInventoryManager.Test.AppFactories;
 using HomeInventoryManager.Data;
+using Newtonsoft.Json;
+using System.Text;
 
-public class AuthControllerIntegrationTest : IClassFixture<MemoryWebApplicationFactory<Program>>
+public class AuthServiceIntegrationTest : IClassFixture<MemoryWebApplicationFactory<Program>>
 {
     private readonly MemoryWebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
     
-    public AuthControllerIntegrationTest(MemoryWebApplicationFactory<Program> factory)
+    public AuthServiceIntegrationTest(MemoryWebApplicationFactory<Program> factory)
     {
         _factory = factory;
         _client = _factory.CreateClient();
@@ -80,6 +82,36 @@ public class AuthControllerIntegrationTest : IClassFixture<MemoryWebApplicationF
         authResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var authContent = await authResponse.Content.ReadAsStringAsync();
         authContent.Should().Contain("Authenticated.");
+    }
+
+    [Fact]
+    public async Task Login_Success_ReturnsToken()
+    {
+        var loginDto = new { UserName = "egds34", PasswordString = "yourTestPassword" };
+        var content = new StringContent(JsonConvert.SerializeObject(loginDto), Encoding.UTF8, "application/json");
+
+        var response = await _client.PostAsync("/api/auth/login", content);
+
+        response.EnsureSuccessStatusCode();
+        var responseString = await response.Content.ReadAsStringAsync();
+        Assert.Contains("accessToken", responseString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Login_Fail_LocksOutAfterMaxAttempts()
+    {
+        var loginDto = new { UserName = "egds34", PasswordString = "wrongPassword" };
+        var content = new StringContent(JsonConvert.SerializeObject(loginDto), Encoding.UTF8, "application/json");
+
+        // Try more than max attempts
+        for (int i = 0; i < 5; i++)
+        {
+            await _client.PostAsync("/api/auth/login", content);
+        }
+
+        var response = await _client.PostAsync("/api/auth/login", content);
+        var responseString = await response.Content.ReadAsStringAsync();
+        Assert.Contains("locked out", responseString, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

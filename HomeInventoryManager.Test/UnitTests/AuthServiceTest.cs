@@ -9,12 +9,11 @@ using HomeInventoryManager.Dto;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-public class AuthControllerTest
+public class AuthServiceTest
 {
     private readonly Mock<IAuthService> _authServiceMock;
     private readonly AuthController _controller;
-
-    public AuthControllerTest()
+    public AuthServiceTest()
     {
         _authServiceMock = new Mock<IAuthService>();
         _controller = new AuthController(_authServiceMock.Object);
@@ -69,15 +68,57 @@ public class AuthControllerTest
     [Fact]
     public async Task Login_ReturnsBadRequest_WhenLoginFails()
     {
-        // Arrange
         var loginDto = new UserLoginDto { UserName = "test", PasswordString = "pass" };
         _authServiceMock.Setup(s => s.LoginAsync(loginDto)).ReturnsAsync((TokenResponseDto?)null);
+
+        var result = await _controller.Login(loginDto);
+
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Login_ReturnsUnauthorized_WhenUserIsLockedOut()
+    {
+        var loginDto = new UserLoginDto { UserName = "lockedout", PasswordString = "wrongpass" };
+        _authServiceMock.Setup(s => s.LoginAsync(loginDto)).ReturnsAsync((TokenResponseDto?)null);
+
+        var result = await _controller.Login(loginDto);
+
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Login_IncrementsFailedAttempts_AndLocksOutAfterMax()
+    {
+        var loginDto = new UserLoginDto { UserName = "failuser", PasswordString = "wrongpass" };
+
+        _authServiceMock.SetupSequence(s => s.LoginAsync(loginDto))
+            .ReturnsAsync((TokenResponseDto?)null) // 1st fail
+            .ReturnsAsync((TokenResponseDto?)null) // 2nd fail
+            .ReturnsAsync((TokenResponseDto?)null); // 3rd fail (lockout)
+
+
+        var result = await _controller.Login(loginDto);
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+
+    }
+
+    [Fact]
+    public async Task Login_Successful_AfterLockoutExpires()
+    {
+        // Arrange
+        var loginDto = new UserLoginDto { UserName = "resetuser", PasswordString = "correctpass" };
+        var tokenResponse = new TokenResponseDto { AccessToken = "access", RefreshToken = "refresh" };
+
+        // Simulate successful login after lockout period
+        _authServiceMock.Setup(s => s.LoginAsync(loginDto)).ReturnsAsync(tokenResponse);
 
         // Act
         var result = await _controller.Login(loginDto);
 
         // Assert
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(tokenResponse, okResult.Value);
     }
 
     [Fact]

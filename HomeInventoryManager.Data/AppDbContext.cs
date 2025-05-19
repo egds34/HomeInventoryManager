@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using HomeInventoryManager.Data.ValueConverters;
 
 namespace HomeInventoryManager.Data
 {

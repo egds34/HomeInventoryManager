@@ -48,6 +48,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Host.UseSerilog();
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
