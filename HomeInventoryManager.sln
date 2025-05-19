@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager", "HomeInventoryManager\HomeInventoryManager\HomeInventoryManager.csproj", "{237C70AD-9279-48F3-821F-B0B1F33037EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager.Client", "HomeInventoryManager\HomeInventoryManager.Client\HomeInventoryManager.Client.csproj", "{FD04F574-E8F2-498B-BB9F-9DF1C14C202C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager.Data", "HomeInventoryManager.Data\HomeInventoryManager.Data.csproj", "{98F152E7-6390-41DD-9EC0-E270299F4484}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager.Api", "HomeInventoryManager.Api\HomeInventoryManager.Api.csproj", "{81CEEA8F-81A5-4420-9FC9-2D739D7254C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeInventoryManager.Dto", "HomeInventoryManager.Dto\HomeInventoryManager.Dto.csproj", "{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{237C70AD-9279-48F3-821F-B0B1F33037EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{237C70AD-9279-48F3-821F-B0B1F33037EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{237C70AD-9279-48F3-821F-B0B1F33037EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{237C70AD-9279-48F3-821F-B0B1F33037EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD04F574-E8F2-498B-BB9F-9DF1C14C202C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD04F574-E8F2-498B-BB9F-9DF1C14C202C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD04F574-E8F2-498B-BB9F-9DF1C14C202C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD04F574-E8F2-498B-BB9F-9DF1C14C202C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98F152E7-6390-41DD-9EC0-E270299F4484}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98F152E7-6390-41DD-9EC0-E270299F4484}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98F152E7-6390-41DD-9EC0-E270299F4484}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98F152E7-6390-41DD-9EC0-E270299F4484}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81CEEA8F-81A5-4420-9FC9-2D739D7254C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81CEEA8F-81A5-4420-9FC9-2D739D7254C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81CEEA8F-81A5-4420-9FC9-2D739D7254C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81CEEA8F-81A5-4420-9FC9-2D739D7254C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{615175B1-7FFD-47EC-B28C-C5A7BFB483B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7C702BCD-A5A3-4B4F-A197-1B3DD5242CB1}
+	EndGlobalSection
+EndGlobal
