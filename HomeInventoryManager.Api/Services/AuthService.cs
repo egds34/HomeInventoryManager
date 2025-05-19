@@ -11,15 +11,15 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace HomeInventoryManager.Api.Services
 {
-    public class AuthService(AppDbContext _context, IConfiguration configuration) : IAuthService
+    public class AuthService(AppDbContext _context, IConfiguration _configuration, ILogger<AuthService> _logger) : IAuthService
     {
+
         public async Task<User?> RegisterAsync(UserRegisterDto userRegisterDto)
         {
-            
-
             // Check if username or email already exists
             if (await _context.USERSET.AnyAsync(u => u.user_name == userRegisterDto.UserName || u.email == userRegisterDto.Email))
             {
+                _logger.LogWarning("Registration failed: Duplicate username or email for {UserName}", userRegisterDto.UserName);
                 return null;
             }
 
@@ -59,18 +59,30 @@ namespace HomeInventoryManager.Api.Services
             user.password_hash = hashedPassword;
 
             // Add user to database and save changes
-            _context.USERSET.Add(user);
+            try
+            {
+                _context.USERSET.Add(user);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during registration for {UserName}", userRegisterDto.UserName);
+                return null;
+            }
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("User registration attempt successful: {UserName}", userRegisterDto.UserName);
             return user;
         }
 
         public async Task<TokenResponseDto?> LoginAsync(UserLoginDto userLoginDto)
         {
+            _logger.LogInformation("User login attempt: {UserName}", userLoginDto.UserName);
+
             // Find the user by username or email
             User? user = await _context.USERSET.FirstOrDefaultAsync(u => u.user_name == userLoginDto.UserName || u.email == userLoginDto.UserName); //log in with either
             if (user == null)
             {
+                _logger.LogWarning("Login failed: Invalid credentials for {UserName}", userLoginDto.UserName);
                 return null;
             }
 
@@ -80,10 +92,34 @@ namespace HomeInventoryManager.Api.Services
             // Check if the hashed password matches the stored password hash
             if (!hashedPassword.SequenceEqual(user.password_hash))
             {
+                _logger.LogWarning("Login failed: Invalid credentials for {UserName}", userLoginDto.UserName);
                 return null;
             }
 
+            // Update last login time
+            user.last_login_time = DateTime.UtcNow;
+            _context.USERSET.Update(user);
+            await _context.SaveChangesAsync();
+
             return await CreateTokenResponse(user);
+        }
+
+        public async Task<TokenResponseDto?> LogoutAsync(UserLogoutDto userLogoutDto)
+        {
+            // Find the user by ID
+            var user = await _context.USERSET.FindAsync(userLogoutDto.UserId);
+            if (user == null)
+            {
+                return null;
+            }
+            
+            user.refresh_token = null;
+            user.refresh_token_time = null;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User logout: {UserId}", userLogoutDto.UserId);
+
+            return new TokenResponseDto { AccessToken = "", RefreshToken = "" };
         }
 
         private async Task<TokenResponseDto> CreateTokenResponse(User user)
@@ -125,7 +161,7 @@ namespace HomeInventoryManager.Api.Services
         {
             var refreshToken = GenerateRefreshToken();
             user.refresh_token = refreshToken;
-            user.refresh_token_time = DateTime.UtcNow.AddDays(configuration.GetValue<int>("AppSettings:RefreshTimeInDays"));
+            user.refresh_token_time = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("AppSettings:RefreshTimeInDays"));
             await _context.SaveChangesAsync();
             return refreshToken;
         }
@@ -135,6 +171,8 @@ namespace HomeInventoryManager.Api.Services
             var user = await _context.USERSET.FindAsync(userId);
             if (user == null || user.refresh_token != refreshToken || user.refresh_token_time <= DateTime.UtcNow)
             {
+
+                _logger.LogWarning("Refresh token invalid or expired for user {UserId}", userId);
                 return null;
             }
             return user;
@@ -150,13 +188,13 @@ namespace HomeInventoryManager.Api.Services
                 new Claim(ClaimTypes.Role, user.role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!)); // Use a secure key
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:Token")!)); // Use a secure key
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
             var tokenDescriptor = new JwtSecurityToken(
-                issuer: configuration.GetValue<string>("AppSettings:Issuer"),
-                audience: configuration.GetValue<string>("AppSettings:Audience"),
+                issuer: _configuration.GetValue<string>("AppSettings:Issuer"),
+                audience: _configuration.GetValue<string>("AppSettings:Audience"),
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddDays(1),//TODO make to minutes I think
                 signingCredentials: creds
             );
 

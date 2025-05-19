@@ -31,7 +31,7 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
             return Ok(user);
         }
 
-        // Updated code for the Login method
+        //POST: Login user
         [HttpPost("login")]
         public async Task<ActionResult<TokenResponseDto>> Login(UserLoginDto userLoginDto)
         {
@@ -39,6 +39,18 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
             if (result is null)
             {
                 return BadRequest("Invalid username or password.");
+            }
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<ActionResult<TokenResponseDto>> Logout(UserLogoutDto userLogoutDto)
+        {
+            var result = await authService.LogoutAsync(userLogoutDto);
+            if (result == null)
+            {
+                return BadRequest("User not found.");
             }
             return Ok(result);
         }
@@ -56,21 +68,21 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
 
         //This is to test authentication for testing.
         [Authorize]
-        [HttpGet]
+        [HttpGet("check-authorization")]
         public IActionResult AuthenticationOnlyEndpoint()
         {
             return Ok("Authenticated.");
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("AdminAsses")]
+        [HttpGet("admin-auth-check")]
         public IActionResult AuthorizationAdminOnlyEndpoint()
         {
             return Ok("Authorized.");
         }
 
         [Authorize(Roles = "Basic")]
-        [HttpGet("BasicBitches")]
+        [HttpGet("basic-auth-check")]
         public IActionResult AuthorizationBasicOnlyEndpoint()
         {
             return Ok("Authorizd.");
