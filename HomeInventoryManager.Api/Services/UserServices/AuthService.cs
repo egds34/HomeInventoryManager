@@ -2,21 +2,19 @@
 using HomeInventoryManager.Dto;
 using System.Net.Mail;
 using System.Security.Cryptography;
-using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using HomeInventoryManager.Api.Services.UserServices.Interfaces;
+using HomeInventoryManager.Api.Utilities;
 
-namespace HomeInventoryManager.Api.Services
+namespace HomeInventoryManager.Api.Services.UserServices
 {
-    public class AuthService(AppDbContext _context, 
-        IConfiguration _configuration, 
-        ILogger<AuthService> _logger) : IAuthService
+    public class AuthService(AppDbContext _context, IConfiguration _configuration, ILogger<AuthService> _logger) : IAuthService
     {
-
-        public async Task<User?> RegisterAsync(UserRegisterDto userRegisterDto)
+        public async Task<User?> RegisterUserAsync(UserRegisterDto userRegisterDto)
         {
             // Check if username or email already exists
             if (await _context.USERSET.AnyAsync(u => u.user_name == userRegisterDto.UserName || u.email == userRegisterDto.Email))
@@ -49,15 +47,12 @@ namespace HomeInventoryManager.Api.Services
             }
 
             // Generate a random salt
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                var salt = new byte[16];
-                rng.GetBytes(salt);
-                user.password_salt = salt;
-            }
+
+            user.password_salt = PasswordUtility.GenerateSalt();
+            
 
             //hash password with salt
-            var hashedPassword = HashPassword(userRegisterDto.PasswordString, user.password_salt);
+            var hashedPassword = PasswordUtility.HashPassword(userRegisterDto.PasswordString, user.password_salt);
             user.password_hash = hashedPassword;
 
             // Add user to database and save changes
@@ -76,7 +71,7 @@ namespace HomeInventoryManager.Api.Services
             return user;
         }
 
-        public async Task<TokenResponseDto?> LoginAsync(UserLoginDto userLoginDto)
+        public async Task<TokenResponseDto?> LoginUserAsync(UserLoginDto userLoginDto)
         {
             _logger.LogInformation("User login attempt: {UserName}", userLoginDto.UserName);
 
@@ -103,7 +98,7 @@ namespace HomeInventoryManager.Api.Services
                 await _context.SaveChangesAsync();
             }
 
-                var hashedPassword = HashPassword(userLoginDto.PasswordString, user.password_salt);
+                var hashedPassword = PasswordUtility.HashPassword(userLoginDto.PasswordString, user.password_salt);
 
             if (!CryptographicOperations.FixedTimeEquals(hashedPassword, user.password_hash)) //neat. takes the same time to compare both strings to mitigate weak passwords
             {
@@ -134,12 +129,17 @@ namespace HomeInventoryManager.Api.Services
             _context.USERSET.Update(user);
             await _context.SaveChangesAsync();
 
-            return await CreateTokenResponse(user);
+            return await TokenUtility.CreateTokenResponse(user, _configuration, _context);
         }
 
-        public async Task<TokenResponseDto?> LogoutAsync(UserLogoutDto userLogoutDto)
+        
+        public async Task<TokenResponseDto?> LogoutUserAsync(int authenticatedUserId, UserLogoutDto userLogoutDto)
         {
-            // Find the user by ID
+            if (authenticatedUserId != userLogoutDto.UserId)
+            {
+                return null;
+            }
+
             var user = await _context.USERSET.FindAsync(userLogoutDto.UserId);
             if (user == null)
             {
@@ -155,6 +155,22 @@ namespace HomeInventoryManager.Api.Services
             return new TokenResponseDto { AccessToken = "", RefreshToken = "" };
         }
 
+        public async Task<TokenResponseDto?> RefreshTokensAsync(int authenticatedUserId, RefreshTokenRequestDto refreshTokenRequestDto)
+        {
+            if (authenticatedUserId != refreshTokenRequestDto.UserId)
+            {
+                return null;
+            }
+
+            var user = await TokenUtility.ValidateRefreshTokenAsync(refreshTokenRequestDto.UserId, refreshTokenRequestDto.RefreshToken, _context, _logger);
+            if (user == null)
+            {
+                return null;
+            }
+            return await TokenUtility.CreateTokenResponse(user, _configuration, _context);
+        }
+
+        /*
         private async Task<TokenResponseDto> CreateTokenResponse(User user)
         {
             return new TokenResponseDto
@@ -164,23 +180,7 @@ namespace HomeInventoryManager.Api.Services
             };
         }
 
-        public async Task<TokenResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto refreshTokenRequestDto)
-        {
-            var user = await ValidateRefreshTokenAsync(refreshTokenRequestDto.UserId, refreshTokenRequestDto.RefreshToken);
-            if (user == null)
-            {
-                return null;
-            }
-            return await CreateTokenResponse(user);
-        }
 
-        private byte[] HashPassword(string password, byte[] salt)
-        {
-            using (var hmac = new HMACSHA512(salt))
-            {
-                return hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            }
-        }
 
         private string GenerateRefreshToken()
         {
@@ -234,5 +234,6 @@ namespace HomeInventoryManager.Api.Services
             // Token creation logic goes here
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         }
+        */
     }
 }

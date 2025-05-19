@@ -1,12 +1,13 @@
 using Scalar.AspNetCore;
 using HomeInventoryManager.Data;
 using Microsoft.EntityFrameworkCore;
-using HomeInventoryManager.Api.Services;
 using System.Collections;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Serilog;
+using HomeInventoryManager.Api.Services.UserServices;
+using HomeInventoryManager.Api.Services.UserServices.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserDeleteService, UserDeleteService>();
 
 builder.Host.UseSerilog();
 

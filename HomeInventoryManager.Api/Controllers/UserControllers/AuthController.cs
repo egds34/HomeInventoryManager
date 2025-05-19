@@ -2,40 +2,32 @@
 using Microsoft.AspNetCore.Mvc;
 using HomeInventoryManager.Dto;
 using HomeInventoryManager.Data;
-using Microsoft.AspNetCore.Identity;
-using System.Text;
-using System.Security.Cryptography;
-using System.Net.Mail;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using HomeInventoryManager.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using HomeInventoryManager.Api.Services.UserServices.Interfaces;
+using System.Security.Claims;
 
 namespace HomeInventoryManager.Api.Controllers.UserEndpoints
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController(IAuthService authService) : ControllerBase
-    {       
-        //POST: Register a new user
+    {
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserRegisterDto userRegisterDto)
+        public async Task<ActionResult<TokenResponseDto>> Register(UserRegisterDto userRegisterDto)
         {
-            var user = await authService.RegisterAsync(userRegisterDto);
-            if (user == null)
+            var result = await authService.RegisterUserAsync(userRegisterDto);
+            if (result is null)
             {
-                return BadRequest("Username or email already exists.");
+                return BadRequest("User already exists.");
             }
-            return Ok(user);
+            return Ok(result);
         }
 
         //POST: Login user
         [HttpPost("login")]
         public async Task<ActionResult<TokenResponseDto>> Login(UserLoginDto userLoginDto)
         {
-            var result = await authService.LoginAsync(userLoginDto);
+            var result = await authService.LoginUserAsync(userLoginDto);
             if (result is null)
             {
                 return BadRequest("Invalid username or password.");
@@ -47,7 +39,9 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
         [HttpPost("logout")]
         public async Task<ActionResult<TokenResponseDto>> Logout(UserLogoutDto userLogoutDto)
         {
-            var result = await authService.LogoutAsync(userLogoutDto);
+            var authenticatedUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await authService.LogoutUserAsync(authenticatedUserId, userLogoutDto);
+
             if (result == null)
             {
                 return BadRequest("User not found.");
@@ -58,7 +52,9 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
         [HttpPost("refresh-token")]
         public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto refreshTokenRequstDto)
         {
-            var result = await authService.RefreshTokensAsync(refreshTokenRequstDto);
+            var authenticatedUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await authService.RefreshTokensAsync(authenticatedUserId, refreshTokenRequstDto);
+
             if (result == null || result.AccessToken == null || result.RefreshToken == null)
             {
                 return Unauthorized("Invalid refresh token.");
@@ -68,7 +64,7 @@ namespace HomeInventoryManager.Api.Controllers.UserEndpoints
 
         //This is to test authentication for testing.
         [Authorize]
-        [HttpGet("check-authorization")]
+        [HttpGet("check-authentication")]
         public IActionResult AuthenticationOnlyEndpoint()
         {
             return Ok("Authenticated.");

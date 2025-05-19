@@ -3,11 +3,11 @@ using Moq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using HomeInventoryManager.Api.Controllers.UserEndpoints;
-using HomeInventoryManager.Api.Services;
 using HomeInventoryManager.Data;
 using HomeInventoryManager.Dto;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using HomeInventoryManager.Api.Services.UserServices.Interfaces;
 
 public class AuthServiceTest
 {
@@ -25,7 +25,7 @@ public class AuthServiceTest
         // Arrange
         var userDto = new UserRegisterDto { UserName = "test", Email = "test@test.com", PasswordString = "pass", FirstName = "Test", LastName = "User" };
         var user = new User { user_id = 1, user_name = "test", email = "test@test.com" };
-        _authServiceMock.Setup(s => s.RegisterAsync(userDto)).ReturnsAsync(user);
+        _authServiceMock.Setup(s => s.RegisterUserAsync(userDto)).ReturnsAsync(user);
 
         // Act
         var result = await _controller.Register(userDto);
@@ -40,7 +40,7 @@ public class AuthServiceTest
     {
         // Arrange
         var userDto = new UserRegisterDto { UserName = "test", Email = "test@test.com", PasswordString = "pass", FirstName = "Test", LastName = "User" };
-        _authServiceMock.Setup(s => s.RegisterAsync(userDto)).ReturnsAsync((User?)null);
+        _authServiceMock.Setup(s => s.RegisterUserAsync(userDto)).ReturnsAsync((User?)null);
 
         // Act
         var result = await _controller.Register(userDto);
@@ -55,7 +55,7 @@ public class AuthServiceTest
         // Arrange
         var loginDto = new UserLoginDto { UserName = "test", PasswordString = "pass" };
         var tokenResponse = new TokenResponseDto { AccessToken = "access", RefreshToken = "refresh" };
-        _authServiceMock.Setup(s => s.LoginAsync(loginDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(tokenResponse);
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -69,7 +69,7 @@ public class AuthServiceTest
     public async Task Login_ReturnsBadRequest_WhenLoginFails()
     {
         var loginDto = new UserLoginDto { UserName = "test", PasswordString = "pass" };
-        _authServiceMock.Setup(s => s.LoginAsync(loginDto)).ReturnsAsync((TokenResponseDto?)null);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync((TokenResponseDto?)null);
 
         var result = await _controller.Login(loginDto);
 
@@ -80,7 +80,7 @@ public class AuthServiceTest
     public async Task Login_ReturnsUnauthorized_WhenUserIsLockedOut()
     {
         var loginDto = new UserLoginDto { UserName = "lockedout", PasswordString = "wrongpass" };
-        _authServiceMock.Setup(s => s.LoginAsync(loginDto)).ReturnsAsync((TokenResponseDto?)null);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync((TokenResponseDto?)null);
 
         var result = await _controller.Login(loginDto);
 
@@ -92,7 +92,7 @@ public class AuthServiceTest
     {
         var loginDto = new UserLoginDto { UserName = "failuser", PasswordString = "wrongpass" };
 
-        _authServiceMock.SetupSequence(s => s.LoginAsync(loginDto))
+        _authServiceMock.SetupSequence(s => s.LoginUserAsync(loginDto))
             .ReturnsAsync((TokenResponseDto?)null) // 1st fail
             .ReturnsAsync((TokenResponseDto?)null) // 2nd fail
             .ReturnsAsync((TokenResponseDto?)null); // 3rd fail (lockout)
@@ -111,7 +111,7 @@ public class AuthServiceTest
         var tokenResponse = new TokenResponseDto { AccessToken = "access", RefreshToken = "refresh" };
 
         // Simulate successful login after lockout period
-        _authServiceMock.Setup(s => s.LoginAsync(loginDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(tokenResponse);
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -157,7 +157,7 @@ public class AuthServiceTest
         // Arrange
         var logoutDto = new UserLogoutDto { UserId = 1 };
         var tokenResponse = new TokenResponseDto { AccessToken = "", RefreshToken = "" };
-        _authServiceMock.Setup(s => s.LogoutAsync(logoutDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.LogoutUserAsync(logoutDto)).ReturnsAsync(tokenResponse);
 
         // Simulate authenticated user
         _controller.ControllerContext = new ControllerContext
@@ -184,7 +184,7 @@ public class AuthServiceTest
     {
         // Arrange
         var logoutDto = new UserLogoutDto { UserId = 1 };
-        _authServiceMock.Setup(s => s.LogoutAsync(logoutDto)).ReturnsAsync((TokenResponseDto?)null);
+        _authServiceMock.Setup(s => s.LogoutUserAsync(logoutDto)).ReturnsAsync((TokenResponseDto?)null);
 
         // Simulate authenticated user
         _controller.ControllerContext = new ControllerContext
@@ -256,7 +256,7 @@ public class AuthServiceTest
         // Arrange
         var loginDto = new UserLoginDto { UserName = "test", PasswordString = "pass" };
         var tokenResponse = new TokenResponseDto { AccessToken = "access", RefreshToken = "refresh" };
-        _authServiceMock.Setup(s => s.LoginAsync(loginDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(tokenResponse);
 
         // Simulate login (would return token in real app)
         var loginResult = await _controller.Login(loginDto);
