@@ -7,6 +7,12 @@ trigger:
     include:
     - Database/DEP/*.dep  # Trigger when .INC files are added/changed
 
+env:
+  PG_HOST: $(PG_HOST)
+  PG_DATABASE: $(PG_DATABASE)
+  PG_USER: $(PG_USER)
+  PG_PASSWORD: $(PG_PASSWORD)
+
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -15,6 +21,13 @@ steps:
   inputs:
     versionSpec: '3.9'
     addToPath: true
+
+- script: |
+    echo "PG_HOST=$PG_HOST"
+    echo "PG_DATABASE=$PG_DATABASE"
+    echo "PG_USER=$PG_USER"
+    echo "PG_PASSWORD=$PG_PASSWORD"
+  displayName: 'Debug env vars'
 
 - script: |
     mkdir -p CI/logs
