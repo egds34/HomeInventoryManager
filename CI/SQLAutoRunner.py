@@ -271,6 +271,7 @@ class PostgresScriptRunner:
 def main():
     """Parse command line arguments and start the script runner."""
     parser = argparse.ArgumentParser(description='PostgreSQL Auto Script Runner')
+    parser.add_argument('--root-dir', required=True, help='Directory to root')
     parser.add_argument('--dep-dir', required=True, help='Directory to monitor for .DEP files')
     parser.add_argument('--db-host', required=True, help='PostgreSQL host')
     parser.add_argument('--db-name', required=True, help='PostgreSQL database name')
@@ -334,6 +335,7 @@ if __name__ == "__main__":
 def main():
     """Parse command line arguments and start the script runner."""
     parser = argparse.ArgumentParser(description='SQL Auto Script Runner')
+    parser.add_argument('--root-dir', required=True, help='Directory to root')
     parser.add_argument('--dep-dir', required=True, help='Directory to monitor for .DEP files')
     parser.add_argument('--db-type', required=True, choices=['mysql', 'postgres'], 
                       help='Database type (mysql or postgres)')
