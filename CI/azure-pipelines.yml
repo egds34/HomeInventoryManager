@@ -1,3 +1,4 @@
+# azure-pipelines.yml
 trigger:
   branches:
     include:
@@ -9,22 +10,22 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-variables:
-  # If needed, you can define variables here or refer to variable groups
-  # varGroup: 'MyVariableGroup'
-
 steps:
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.9'
     addToPath: true
 
+- script: |
+    mkdir -p CI/logs
+  displayName: 'Create log directory structure'
+
 - script: pip install psycopg2-binary
   displayName: 'Install PostgreSQL dependencies'
 
 - script: |
-    python CI/SQLAutoRunner.py \
-      --inc-dir $(System.DefaultWorkingDirectory)/Database/INC \
+    python sql_auto_script.py \
+      --inc-dir $(System.DefaultWorkingDirectory)/inc_files \
       --db-host $(PG_HOST) \
       --db-name $(PG_DATABASE) \
       --db-user $(PG_USER) \
@@ -33,6 +34,6 @@ steps:
   
 - task: PublishBuildArtifacts@1
   inputs:
-    pathtoPublish: 'CI/logs/SQLAutoRunner.log'
-    artifactName: 'logs'
+    pathtoPublish: '$(System.DefaultWorkingDirectory)/logs'
+    artifactName: 'sql-execution-logs'
   condition: always()
