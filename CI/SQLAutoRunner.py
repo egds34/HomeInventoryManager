@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import List, Optional, Set
 
 # Configure logging
-log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CI/logs")
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
