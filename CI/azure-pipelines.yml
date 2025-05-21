@@ -9,10 +9,6 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-variables:
-  # If needed, you can define variables here or refer to variable groups
-  # varGroup: 'MyVariableGroup'
-
 steps:
 - task: UsePythonVersion@0
   inputs:
