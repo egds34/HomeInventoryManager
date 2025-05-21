@@ -36,6 +36,6 @@ steps:
   
 - task: PublishBuildArtifacts@1
   inputs:
-    pathtoPublish: '$(System.DefaultWorkingDirectory)/logs'
+    pathtoPublish: '$(System.DefaultWorkingDirectory)/CI/logs'
     artifactName: 'sql-execution-logs'
   condition: always()
