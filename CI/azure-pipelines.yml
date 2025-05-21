@@ -7,12 +7,6 @@ trigger:
     include:
     - Database/DEP/*.dep  # Trigger when .INC files are added/changed
 
-env:
-  PG_HOST: $(PG_HOST)
-  PG_DATABASE: $(PG_DATABASE)
-  PG_USER: $(PG_USER)
-  PG_PASSWORD: $(PG_PASSWORD)
-
 pool:
   vmImage: 'ubuntu-latest'
 
