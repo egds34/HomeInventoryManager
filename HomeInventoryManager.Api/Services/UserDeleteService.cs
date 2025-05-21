@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
-using HomeInventoryManager.Api.Services.UserServices.Interfaces;
 using HomeInventoryManager.Api.Utilities;
+using HomeInventoryManager.Api.Services.Interfaces;
 
-namespace HomeInventoryManager.Api.Services.UserServices
+namespace HomeInventoryManager.Api.Services
 {
     public class UserDeleteService(AppDbContext _context, ILogger<AuthService> _logger) : IUserDeleteService
     {

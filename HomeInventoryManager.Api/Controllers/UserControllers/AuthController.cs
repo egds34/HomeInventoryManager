@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using HomeInventoryManager.Dto;
 using HomeInventoryManager.Data;
 using Microsoft.AspNetCore.Authorization;
-using HomeInventoryManager.Api.Services.UserServices.Interfaces;
 using System.Security.Claims;
 using Microsoft.AspNetCore.RateLimiting;
+using HomeInventoryManager.Api.Services.Interfaces;
 
 namespace HomeInventoryManager.Api.Controllers.UserEndpoints
 {

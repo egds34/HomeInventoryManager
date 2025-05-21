@@ -2,7 +2,7 @@
 using HomeInventoryManager.Data;
 using HomeInventoryManager.Dto;
 
-namespace HomeInventoryManager.Api.Services.UserServices.Interfaces
+namespace HomeInventoryManager.Api.Services.Interfaces
 {
     public interface IUserDeleteService
     {
