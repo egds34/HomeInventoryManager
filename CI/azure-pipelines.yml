@@ -31,7 +31,7 @@ steps:
   displayName: 'Install PostgreSQL dependencies'
 
 - script: |
-    python CI/SQLAutoRunner.py --dep-dir $(System.DefaultWorkingDirectory)/Database/DEP --db-host $(PG_HOST) --db-name $(PG_DATABASE) --db-user $(PG_USER) --db-password $(PG_PASSWORD) --db-port 5432
+    python CI/SQLAutoRunner.py --root-dir $(System.DefaultWorkingDirectory) --dep-dir $(System.DefaultWorkingDirectory)/Database/DEP --db-host $(PG_HOST) --db-name $(PG_DATABASE) --db-user $(PG_USER) --db-password $(PG_PASSWORD) --db-port 5432
   displayName: 'Process SQL scripts'
   
 - task: PublishBuildArtifacts@1
