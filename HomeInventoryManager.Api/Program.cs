@@ -49,6 +49,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserDeleteService, UserDeleteService>();
+builder.Services.AddScoped<IItemAddService, ItemAddService>();
 
 builder.Host.UseSerilog();
 

@@ -83,7 +83,7 @@ namespace HomeInventoryManager.Api.Utilities
                 new Claim(ClaimTypes.Role, user.role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
             var tokenDescriptor = new JwtSecurityToken(
                 issuer: configuration.GetValue<string>("AppSettings:Issuer"),

@@ -88,7 +88,7 @@ namespace HomeInventoryManager.Api.Services
                 await _context.SaveChangesAsync();
             }
 
-                var hashedPassword = PasswordUtility.HashPassword(userLoginDto.PasswordString, user.password_salt);
+            var hashedPassword = PasswordUtility.HashPassword(userLoginDto.PasswordString, user.password_salt);
 
             if (!CryptographicOperations.FixedTimeEquals(hashedPassword, user.password_hash)) //neat. takes the same time to compare both strings to mitigate weak passwords
             {

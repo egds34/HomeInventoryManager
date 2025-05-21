@@ -1,0 +1,19 @@
+DROP TABLE IF EXISTS "USERSET";
+
+CREATE TABLE "USERSET" (
+    user_id SERIAL PRIMARY KEY,
+    user_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    normalized_email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash BYTEA NOT NULL,
+    password_salt BYTEA NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'Basic',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_attempt_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    failed_loging_attempts INTEGER NOT NULL DEFAULT 0,
+    lockout_until_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total_lockouts INTEGER NOT NULL DEFAULT 0
+);

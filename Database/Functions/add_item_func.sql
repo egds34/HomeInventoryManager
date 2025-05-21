@@ -12,7 +12,7 @@ RETURNS BIGINT AS $$
 DECLARE
     new_item_id BIGINT;
 BEGIN
-    INSERT INTO "ITEM" (
+    INSERT INTO "ITEMS" (
         name, description, user_id, barcode,
         category_id, location_id, photo_id, receipt_id
     )
