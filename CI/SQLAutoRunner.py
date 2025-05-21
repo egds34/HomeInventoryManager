@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import List, Optional, Set
 
 # Configure logging
-log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CI/logs")
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 class PostgresScriptRunner:
     def __init__(self, 
+                 root_dir: str,
                  dep_dir: str,
                  db_host: str, 
                  db_name: str, 
@@ -53,6 +54,7 @@ class PostgresScriptRunner:
             db_password: Database password
             db_port: Database port (default: 5432)
         """
+        self.root_dir = root_dir
         self.dep_dir = dep_dir
         self.db_host = db_host
         self.db_name = db_name
@@ -215,7 +217,7 @@ class PostgresScriptRunner:
             for script_path in script_paths:
                 # Handle relative paths
                 if not os.path.isabs(script_path):
-                    script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), script_path)
+                    script_path = os.path.join(self.root_dir, script_path)
                 
                 if os.path.exists(script_path):
                     self._execute_sql_script(conn, script_path)
