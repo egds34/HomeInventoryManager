@@ -213,10 +213,6 @@ class PostgresScriptRunner:
                 
             # Execute each script in order
             for script_path in script_paths:
-                # Handle relative paths
-                if not os.path.isabs(script_path):
-                    script_path = os.path.join(os.path.dirname(dep_path), script_path)
-                
                 if os.path.exists(script_path):
                     self._execute_sql_script(conn, script_path)
                 else:
