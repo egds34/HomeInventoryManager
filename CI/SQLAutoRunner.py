@@ -284,6 +284,7 @@ def main():
     try:
         # Create and run the PostgreSQL Script Runner
         runner = PostgresScriptRunner(
+            root_dir=args.root_dir,
             dep_dir=args.dep_dir,
             db_host=args.db_host,
             db_name=args.db_name,
