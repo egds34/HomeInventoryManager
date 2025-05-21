@@ -1,4 +1,4 @@
-﻿namespace HomeInventoryManager.Api.Services.UserServices.Interfaces
+﻿namespace HomeInventoryManager.Api.Services.Interfaces
 {
     public interface IUserModifyService
     {

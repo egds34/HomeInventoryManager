@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using HomeInventoryManager.Api.Services.UserServices.Interfaces;
 using HomeInventoryManager.Api.Utilities;
+using HomeInventoryManager.Api.Services.Interfaces;
 
-namespace HomeInventoryManager.Api.Services.UserServices
+namespace HomeInventoryManager.Api.Services
 {
     public class AuthService(AppDbContext _context, IConfiguration _configuration, ILogger<AuthService> _logger) : IAuthService
     {

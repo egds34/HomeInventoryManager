@@ -7,7 +7,8 @@ using HomeInventoryManager.Data;
 using HomeInventoryManager.Dto;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using HomeInventoryManager.Api.Services.UserServices.Interfaces;
+using HomeInventoryManager.Api.Services.Interfaces;
+using HomeInventoryManager.Api.Utilities;
 
 public class AuthServiceTest
 {
@@ -25,7 +26,7 @@ public class AuthServiceTest
         // Arrange
         var userDto = new UserRegisterDto { UserName = "test", Email = "test@test.com", PasswordString = "pass", FirstName = "Test", LastName = "User" };
         var user = new User { user_id = 1, user_name = "test", email = "test@test.com" };
-        _authServiceMock.Setup(s => s.RegisterUserAsync(userDto)).ReturnsAsync(user);
+        _authServiceMock.Setup(s => s.RegisterUserAsync(userDto)).ReturnsAsync(ServiceResult<User>.Ok(user));
 
         // Act
         var result = await _controller.Register(userDto);
@@ -40,7 +41,7 @@ public class AuthServiceTest
     {
         // Arrange
         var userDto = new UserRegisterDto { UserName = "test", Email = "test@test.com", PasswordString = "pass", FirstName = "Test", LastName = "User" };
-        _authServiceMock.Setup(s => s.RegisterUserAsync(userDto)).ReturnsAsync((User?)null);
+        _authServiceMock.Setup(s => s.RegisterUserAsync(userDto)).ReturnsAsync(ServiceResult<User>.Fail(ErrorCode.ERR_DUPLICATE_ENTRY));
 
         // Act
         var result = await _controller.Register(userDto);
@@ -55,7 +56,7 @@ public class AuthServiceTest
         // Arrange
         var loginDto = new UserLoginDto { UserName = "test", PasswordString = "pass" };
         var tokenResponse = new TokenResponseDto { AccessToken = "access", RefreshToken = "refresh" };
-        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Ok(tokenResponse));
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -69,7 +70,7 @@ public class AuthServiceTest
     public async Task Login_ReturnsBadRequest_WhenLoginFails()
     {
         var loginDto = new UserLoginDto { UserName = "test", PasswordString = "pass" };
-        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync((TokenResponseDto?)null);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_INVALID_CREDENTIALS));
 
         var result = await _controller.Login(loginDto);
 
@@ -77,10 +78,10 @@ public class AuthServiceTest
     }
 
     [Fact]
-    public async Task Login_ReturnsUnauthorized_WhenUserIsLockedOut()
+    public async Task Login_ReturnsBadRequest_WhenUserIsLockedOut()
     {
         var loginDto = new UserLoginDto { UserName = "lockedout", PasswordString = "wrongpass" };
-        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync((TokenResponseDto?)null);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_ACCOUNT_LOCKED));
 
         var result = await _controller.Login(loginDto);
 
@@ -93,14 +94,12 @@ public class AuthServiceTest
         var loginDto = new UserLoginDto { UserName = "failuser", PasswordString = "wrongpass" };
 
         _authServiceMock.SetupSequence(s => s.LoginUserAsync(loginDto))
-            .ReturnsAsync((TokenResponseDto?)null) // 1st fail
-            .ReturnsAsync((TokenResponseDto?)null) // 2nd fail
-            .ReturnsAsync((TokenResponseDto?)null); // 3rd fail (lockout)
-
+            .ReturnsAsync(ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_INVALID_CREDENTIALS)) // 1st fail
+            .ReturnsAsync(ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_INVALID_CREDENTIALS)) // 2nd fail
+            .ReturnsAsync(ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_ACCOUNT_LOCKED)); // 3rd fail (lockout)
 
         var result = await _controller.Login(loginDto);
         Assert.IsType<BadRequestObjectResult>(result.Result);
-
     }
 
     [Fact]
@@ -111,7 +110,7 @@ public class AuthServiceTest
         var tokenResponse = new TokenResponseDto { AccessToken = "access", RefreshToken = "refresh" };
 
         // Simulate successful login after lockout period
-        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Ok(tokenResponse));
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -127,7 +126,7 @@ public class AuthServiceTest
         // Arrange
         var refreshDto = new RefreshTokenRequestDto { UserId = 1, RefreshToken = "refresh" };
         var tokenResponse = new TokenResponseDto { AccessToken = "access", RefreshToken = "refresh" };
-        _authServiceMock.Setup(s => s.RefreshTokensAsync(refreshDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.RefreshTokensAsync(It.IsAny<int>(), refreshDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Ok(tokenResponse));
 
         // Act
         var result = await _controller.RefreshToken(refreshDto);
@@ -138,17 +137,17 @@ public class AuthServiceTest
     }
 
     [Fact]
-    public async Task RefreshToken_ReturnsUnauthorized_WhenTokenInvalid()
+    public async Task RefreshToken_ReturnsBadRequest_WhenTokenInvalid()
     {
         // Arrange
         var refreshDto = new RefreshTokenRequestDto { UserId = 1, RefreshToken = "refresh" };
-        _authServiceMock.Setup(s => s.RefreshTokensAsync(refreshDto)).ReturnsAsync((TokenResponseDto?)null);
+        _authServiceMock.Setup(s => s.RefreshTokensAsync(It.IsAny<int>(), refreshDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_TOKEN_INVALID));
 
         // Act
         var result = await _controller.RefreshToken(refreshDto);
 
         // Assert
-        Assert.IsType<UnauthorizedObjectResult>(result.Result);
+        Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 
     [Fact]
@@ -157,7 +156,7 @@ public class AuthServiceTest
         // Arrange
         var logoutDto = new UserLogoutDto { UserId = 1 };
         var tokenResponse = new TokenResponseDto { AccessToken = "", RefreshToken = "" };
-        _authServiceMock.Setup(s => s.LogoutUserAsync(logoutDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.LogoutUserAsync(It.IsAny<int>(), logoutDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Ok(tokenResponse));
 
         // Simulate authenticated user
         _controller.ControllerContext = new ControllerContext
@@ -184,7 +183,7 @@ public class AuthServiceTest
     {
         // Arrange
         var logoutDto = new UserLogoutDto { UserId = 1 };
-        _authServiceMock.Setup(s => s.LogoutUserAsync(logoutDto)).ReturnsAsync((TokenResponseDto?)null);
+        _authServiceMock.Setup(s => s.LogoutUserAsync(It.IsAny<int>(), logoutDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Fail(ErrorCode.ERR_RECORD_NOT_FOUND));
 
         // Simulate authenticated user
         _controller.ControllerContext = new ControllerContext
@@ -202,8 +201,7 @@ public class AuthServiceTest
         var result = await _controller.Logout(logoutDto);
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
-        Assert.Equal("User not found.", badRequestResult.Value);
+        Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 
     [Fact]
@@ -230,7 +228,7 @@ public class AuthServiceTest
     }
 
     [Fact]
-    public void AuthenticationOnlyEndpoint_ReturnsUnauthorized_WhenUserIsNotAuthenticated()
+    public void AuthenticationOnlyEndpoint_ReturnsOk_WhenUserIsNotAuthenticated()
     {
         // Arrange: Simulate an unauthenticated user
         var user = new ClaimsPrincipal(new ClaimsIdentity());
@@ -243,20 +241,17 @@ public class AuthServiceTest
         var result = _controller.AuthenticationOnlyEndpoint();
 
         // Assert
-        // Since the [Authorize] attribute is not enforced in unit tests, you must check manually
-        // In a real integration test, this would return 401 Unauthorized
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.Equal("Authenticated.", okResult.Value);
     }
 
-    // Example: Simulate login and then access the endpoint
     [Fact]
     public async Task Login_Then_AuthenticationOnlyEndpoint_ReturnsOk()
     {
         // Arrange
         var loginDto = new UserLoginDto { UserName = "test", PasswordString = "pass" };
         var tokenResponse = new TokenResponseDto { AccessToken = "access", RefreshToken = "refresh" };
-        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(tokenResponse);
+        _authServiceMock.Setup(s => s.LoginUserAsync(loginDto)).ReturnsAsync(ServiceResult<TokenResponseDto>.Ok(tokenResponse));
 
         // Simulate login (would return token in real app)
         var loginResult = await _controller.Login(loginDto);

@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Serilog;
-using HomeInventoryManager.Api.Services.UserServices;
-using HomeInventoryManager.Api.Services.UserServices.Interfaces;
 using Microsoft.AspNetCore.RateLimiting;
+using HomeInventoryManager.Api.Services.Interfaces;
+using HomeInventoryManager.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +21,7 @@ builder.Services.AddControllers();
 
 //add db connection
 var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+var JWTSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
 
 var isTesting = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing";
 if (!isTesting)
@@ -42,7 +43,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["AppSettings:Audience"],
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWTSecret!)),
         };
     });
 

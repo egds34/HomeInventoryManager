@@ -2,8 +2,8 @@
 using HomeInventoryManager.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using HomeInventoryManager.Api.Services.UserServices.Interfaces;
 using System.Security.Claims;
+using HomeInventoryManager.Api.Services.Interfaces;
 
 namespace HomeInventoryManager.Api.Controllers.UserEndpoints
 {

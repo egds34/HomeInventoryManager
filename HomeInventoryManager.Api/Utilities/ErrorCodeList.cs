@@ -56,76 +56,46 @@
     public enum ErrorCode
     {
         // Auth (1000s)
-        //Username or password is incorrect.
         ERR_INVALID_CREDENTIALS = 1001,
-        //Too many failed login attempts; account is temporarily locked.
         ERR_ACCOUNT_LOCKED = 1002,
-        //User is not authorized for the requested action.
         ERR_UNAUTHORIZED = 1003,
-        //Authenticated but not allowed to perform this action.
         ERR_FORBIDDEN_OPERATION = 1004,
-        //The authentication token is no longer valid
         ERR_TOKEN_EXPIRED = 1005,
-        //Provided token is malformed or unrecognized
         ERR_TOKEN_INVALID = 1006,
-        //User was not found in database.
         ERR_USER_NOT_FOUND = 1007,
 
 
         // Validation of input (2000s)
-        /// <summary>Input fields failed validation.</summary>
         ERR_VALIDATION_FAILED = 2001,
-        /// <summary>A required field is missing.</summary>
         ERR_REQUIRED_FIELD = 2002,
-        /// <summary>Field value does not match expected format.</summary>
         ERR_FORMAT_INVALID = 2003,
-        /// <summary>An entry with the same unique field already exists.</summary>
         ERR_DUPLICATE_ENTRY = 2004,
-        /// <summary>String exceeds max allowed length.</summary>
         ERR_STRING_TOO_LONG = 2005,
-        /// <summary>String does not meet minimum length requirement.</summary>
         ERR_STRING_TOO_SHORT = 2006,
 
         // Database (3000s)
-        /// <summary>Unable to connect to database.</summary>
         ERR_DB_CONNECTION = 3001,
-        /// <summary>Foreign key or other constraint failed.</summary>
         ERR_DB_CONSTRAINT_FAIL = 3002,
-        /// <summary>Database operation timed out.</summary>
         ERR_DB_TIMEOUT = 3003,
-        /// <summary>The requested record does not exist.</summary>
         ERR_RECORD_NOT_FOUND = 3004,
-        /// <summary>Unique constraint violation.</summary>
         ERR_DUPLICATE_KEY = 3005,
-        /// <summary>Unsure what the issue is for now.</summary>
         ERR_UNKNOWN = 3006,
 
         // Logic (4000s)
-        /// <summary>Operation not allowed in current state.</summary>
         ERR_CONFLICTING_STATE = 4001,
-        /// <summary>Exceeded the number of allowed attempts.</summary>
         ERR_MAX_ATTEMPTS_EXCEEDED = 4002,
-        /// <summary>Cannot delete/update due to existing references.</summary>
         ERR_DEPENDENCY_EXISTS = 4003,
-        /// <summary>Too many requests in a short time.</summary>
         ERR_RATE_LIMIT = 4004,
 
         // System/unknown (5000s)
-        /// <summary>Unhandled or unknown internal error.</summary>
         ERR_INTERNAL = 5001,
-        /// <summary>Service temporarily down or restarting.</summary>
         ERR_SERVICE_UNAVAILABLE = 5002,
-        /// <summary>Feature not yet implemented.</summary>
         ERR_NOT_IMPLEMENTED = 5003,
-        /// <summary>Application configuration error.</summary>
         ERR_CONFIG_MISSING = 5004,
 
         // Security (6000s)
-        /// <summary>Password hash comparison failed.</summary>
         ERR_HASH_MISMATCH = 6001,
-        /// <summary>Unusual behavior detected.</summary>
         ERR_SUSPICIOUS_ACTIVITY = 6002,
-        /// <summary>Token or data has invalid signature.</summary>
         ERR_INVALID_SIGNATURE = 6003
     }
 

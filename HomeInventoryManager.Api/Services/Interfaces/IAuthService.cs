@@ -2,7 +2,7 @@
 using HomeInventoryManager.Data;
 using HomeInventoryManager.Api.Utilities;
 
-namespace HomeInventoryManager.Api.Services.UserServices.Interfaces
+namespace HomeInventoryManager.Api.Services.Interfaces
 {
     public interface IAuthService
     {
