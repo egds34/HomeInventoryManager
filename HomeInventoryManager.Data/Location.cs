@@ -8,9 +8,9 @@ namespace HomeInventoryManager.Data
 {
     public class Location
     {
-        public int id { get; set; } = 0; // unique id
-        public string user_id { get; set; } = "DEFAULT"; // user id
-        public string? description { get; set; }
+        public int id { get; set; } = 0; 
+        public string user_id { get; set; } = "DEFAULT"; 
+        public string? description { get; set; } 
         public string name { get; set; } = string.Empty; // name of the location
         public DateTime created_at { get; set; } = DateTime.UtcNow;
         public ICollection<Item> Items { get; set; } = new List<Item>();
