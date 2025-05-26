@@ -1,15 +1,4 @@
 #!/usr/bin/env python3
-"""
-PostgreSQL SQL Auto Script Runner
-
-This script processes new .DEP files, reads the SQL script paths from them,
-and executes those SQL scripts against a PostgreSQL database in the order they appear.
-
-Usage:
-    python sql_auto_script.py --dep-dir <dep_directory> --db-host <host> --db-name <database> --db-user <username> [--db-password <password>]
-
-The script keeps track of processed .DEP files to avoid running the same scripts multiple times.
-"""
 
 import os
 import sys
